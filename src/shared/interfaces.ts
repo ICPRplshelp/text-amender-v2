@@ -5,6 +5,8 @@ export enum AmendmentCategories {
     WordEquations = "Word Equations",
     // Anything that deals with reading documents that are not plain text
     Paper = "Paper",
+    Boilerplate = "Boilerplate",
+    Strings = "Strings",
 }
 
 export interface AmendmentModule {

@@ -96,7 +96,7 @@ const softWrapper: AmendmentModule = {
         const codeBlocks = text.match(codeBlockRegex) || [];
         text = text.replace(codeBlockRegex, '<CODEBLOCK>');
         const singleNewlineRegex = /(?<!\n)\n(?!\n)/g;
-        text = text.replace(singleNewlineRegex, '');
+        text = text.replace(singleNewlineRegex, ' ');
 
         codeBlocks.forEach((codeBlock) => {
             text = text.replace('<CODEBLOCK>', codeBlock);
@@ -122,10 +122,107 @@ const textToList: AmendmentModule = {
     name: "Text to List",
     repr: "text-to-list",
     description: "print(text.split('\\n'))",
-    category: AmendmentCategories.WordEquations,
+    category: AmendmentCategories.Boilerplate,
     inputType: "Text",
     operation: (text) => {
-        return JSON.stringify(text.split("\n"))
+        return JSON.stringify(text.trim().split("\n"))
+    }
+}
+
+const numbersToList: AmendmentModule = {
+    name: "Numbers to List",
+    repr: "num-to-list",
+    description: "print([int(n) for n in text.split('\\n')]); 0 for invalid",
+    category: AmendmentCategories.Boilerplate,
+    inputType: "Text",
+    operation: (text) => {
+        const safeParseFloat = (content: string) => {
+            const a2 = parseFloat(content);
+            if (isNaN(a2)) {
+                return 0;
+            }
+            return a2;
+        }
+
+        return JSON.stringify(text.trim().split("\n").map(t => safeParseFloat(t)))
+    }
+}
+
+const toUpper: AmendmentModule = {
+    name: "To Upper Case",
+    repr: "upper",
+    description: "upper(text)",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+        return text.toUpperCase();
+    }
+}
+
+const toUnixPath: AmendmentModule = {
+    name: "Unix Path",
+    repr: "unix-path",
+    description: "text.replace(R\"\\\", \"/\")",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+        return text.replaceAll("\\", "/");
+    }
+}
+
+const toWindowsPath: AmendmentModule = {
+    name: "Windows Path",
+    repr: "windows-path",
+    description: "text.replace(\"/\", R\"\\\")",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+        return text.replaceAll("/", "\\");
+    }
+}
+
+const literalToString: AmendmentModule = {
+    name: "Literal to String",
+    repr: "literal-to-string",
+    description: "repr^-1(text)",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+
+        try {
+            const jsonObj: string[] = JSON.parse(`["${text.replaceAll('"', '\\"')}"]`);
+            return jsonObj[0];
+        } catch (e) {
+            return "Invalid string literal";
+        }
+    }
+}
+
+const stringToLiteral: AmendmentModule = {
+    name: "String to Literal",
+    repr: "string-to-literal",
+    description: "repr(text)",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+        return JSON.stringify(text);
+    }
+}
+
+const stringCounter: AmendmentModule = {
+    name: "String Counter",
+    repr: "string-counter",
+    description: "To make it easier to count indices of a string",
+    category: AmendmentCategories.Strings,
+    inputType: "Text",
+    operation: (text) => {
+        const bigList: string[] = [];
+        let i: number = 0;
+        for (const ch of text) {
+            bigList.push(`-${text.length - i} | ${i}: ${JSON.stringify(ch)}`);
+            i++;
+        }
+        return bigList.join("\n");
     }
 }
 
@@ -135,5 +232,6 @@ export const amendmentModules: AmendmentModule[] = [
     align, plusMinus, fixUnicodeEquations,
     fakeListToList,
     pdfNewlineRemover, softWrapper,
-    textToList
+    textToList, numbersToList, toUpper, toUnixPath, toWindowsPath,
+    literalToString, stringToLiteral, stringCounter
 ];

@@ -64,7 +64,7 @@ function App() {
 
     const action = (
         <Fragment>
-            <Button color="primary" size="small" onClick={handleClose}>
+            <Button color="secondary" size="small" onClick={handleClose}>
                 CLOSE
             </Button>
         </Fragment>
@@ -89,6 +89,7 @@ function App() {
                                 id="dropdown"
                                 value={selectedModule.repr}
                                 onChange={handleChange}
+
                             >
                                 {amendmentModules.map(item => {
                                     return <MenuItem key={item.repr} value={item.repr}>
@@ -101,7 +102,7 @@ function App() {
                             id="outlined-multiline-flexible"
                             label={selectedModule.inputType}
                             multiline
-                            maxRows={4} // You can adjust the number of rows as needed
+                            maxRows={12} // You can adjust the number of rows as needed
                             fullWidth
                             value={input}
                             onChange={handleInputChange}
