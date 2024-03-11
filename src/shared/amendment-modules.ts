@@ -226,6 +226,73 @@ const stringCounter: AmendmentModule = {
     }
 }
 
+const toMath = (st: string) => {
+    // https://stackoverflow.com/questions/22703574/how-can-i-add-the-multiplication-sign-to-an-algebraic-expression-through-regex
+    return st.trim().replaceAll("⋅", "*").replaceAll(" ", "*").replaceAll("^''", "_q").replaceAll("^'", "_p").replaceAll(/(?<=[a-zA-Z0-9])(?=[a-zA-Z])/g, "*");
+}
+
+
+const toMathAM: AmendmentModule = {
+    name: "To Math",
+    repr: "to-math",
+    description: "Converts a math-like expression (in UnicodeMath - copied from MS Word) to code",
+    category: AmendmentCategories.WordEquations,
+    inputType: "Equation",
+    operation: toMath
+}
+
+function transpose<T>(matrix: T[][]): T[][] {
+    return matrix[0].map((_, i) => matrix.map(row => row[i]));
+}
+
+const transposeMatrix: AmendmentModule = {
+    name: "Transpose Matrix",
+    repr: "transpose-matrix",
+    description: "Transposes a Microsoft Word Equation Editor Matrix. You may paste the entire Matrix, but the brackets for the matrix may not be (circular parenthesis), and the matrix may not contain nested matrices. The Matrix will always be output inside [square brackets]."
+    ,
+    category: AmendmentCategories.WordEquations,
+    inputType: "Equation",
+    operation: (text) => {
+        const firstBracket = text.indexOf("(");
+        const lastBracket = text.lastIndexOf(")");
+        if(firstBracket === -1 || lastBracket === -1){
+            return `Invalid input: ${firstBracket}, ${lastBracket} | ${text}`;
+        }
+        const matrixText = text.slice(firstBracket + 1, lastBracket);
+        console.log(matrixText);
+        const mtmt = matrixText.split("@").map(line => line.split("&"));
+        const mtmtTransposed = transpose(mtmt);
+        const tpAsString = mtmtTransposed.map(nl => nl.join("&")).join("@");
+        return `[■(${tpAsString})]`
+    }
+}
+
+
+const wordMatrixToCode: AmendmentModule = {
+    name: "Matrix to code",
+    repr: "matrix-to-code",
+    description: "Converts a Matrix in MS Word Format to code. You may paste the entire Matrix, but the brackets for the matrix may not be (circular parenthesis), and the matrix may not contain nested matrices",
+    category: AmendmentCategories.WordEquations,
+    inputType: "Equation",
+    operation: (text) => {
+
+        /*
+        [■(1&2&3@4&5&6@7&8&9)]
+        34s/(26a+16b+14c)
+         */
+        const firstBracket = text.indexOf("(");
+        const lastBracket = text.lastIndexOf(")");
+        if(firstBracket === -1 || lastBracket === -1){
+            return `Invalid input: ${firstBracket}, ${lastBracket} | ${text}`;
+        }
+        const matrixText = text.slice(firstBracket + 1, lastBracket);
+        console.log(matrixText);
+        const mtmt = matrixText.split("@").map(line => line.split("&").map(toMath));
+
+        return JSON.stringify(mtmt).replaceAll('"', "");
+    }
+}
+
 
 export const amendmentModules: AmendmentModule[] = [
     pandocMarkdownToHTML,
@@ -233,5 +300,6 @@ export const amendmentModules: AmendmentModule[] = [
     fakeListToList,
     pdfNewlineRemover, softWrapper,
     textToList, numbersToList, toUpper, toUnixPath, toWindowsPath,
-    literalToString, stringToLiteral, stringCounter
+    literalToString, stringToLiteral, stringCounter, toMathAM, wordMatrixToCode,
+    transposeMatrix
 ];
