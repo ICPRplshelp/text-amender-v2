@@ -9,6 +9,13 @@ export enum AmendmentCategories {
     Strings = "Strings",
 }
 
+
+export interface AmendmentCategoryHolder {
+    category: string;
+    modules: AmendmentModule[];
+}
+
+
 export interface AmendmentModule {
     // display
     name: string;

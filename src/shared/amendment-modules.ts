@@ -233,7 +233,7 @@ const toMath = (st: string) => {
 
 
 const toMathAM: AmendmentModule = {
-    name: "To Math",
+    name: "Math to Code",
     repr: "to-math",
     description: "Converts a math-like expression (in UnicodeMath - copied from MS Word) to code",
     category: AmendmentCategories.WordEquations,
@@ -255,7 +255,7 @@ const transposeMatrix: AmendmentModule = {
     operation: (text) => {
         const firstBracket = text.indexOf("(");
         const lastBracket = text.lastIndexOf(")");
-        if(firstBracket === -1 || lastBracket === -1){
+        if (firstBracket === -1 || lastBracket === -1) {
             return `Invalid input: ${firstBracket}, ${lastBracket} | ${text}`;
         }
         const matrixText = text.slice(firstBracket + 1, lastBracket);
@@ -282,7 +282,7 @@ const wordMatrixToCode: AmendmentModule = {
          */
         const firstBracket = text.indexOf("(");
         const lastBracket = text.lastIndexOf(")");
-        if(firstBracket === -1 || lastBracket === -1){
+        if (firstBracket === -1 || lastBracket === -1) {
             return `Invalid input: ${firstBracket}, ${lastBracket} | ${text}`;
         }
         const matrixText = text.slice(firstBracket + 1, lastBracket);
@@ -294,12 +294,135 @@ const wordMatrixToCode: AmendmentModule = {
 }
 
 
+const tsvToCsv: AmendmentModule = {
+    name: "TSV to CSV",
+    repr: "tsv-to-csv",
+    description: "Converts Tab-Seperated-Value files into CSV files. This assumes that no cell contains commas.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.replaceAll("\t", ",");
+    }
+}
+
+const csvToTsv: AmendmentModule = {
+    name: "CSV to TSV",
+    repr: "csv-to-tsv",
+    description: "Converts Comma-Seperated-Value files into Tab-separate-value strings. This assumes that no cell contains commas.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.replaceAll(",", "\t");
+    }
+}
+
+function toNumberBooleanOrString(s: string) {
+    const trimmed = s.trim();
+    if (s === "") {
+        return null;
+    }
+    if (trimmed.toLowerCase() === "true") {
+        return true;
+    }
+    if (trimmed.toLowerCase() === "false") {
+        return false;
+    }
+    const numberAttempt = Number(trimmed);
+    if (!isNaN(numberAttempt)) {
+        return numberAttempt
+    }
+    return trimmed;
+}
+
+function csvToJson(text: string) {
+    text = text.trim();
+    const arr = text.split("\n").map(sp => sp.split(",").map(s => {
+        return s.trim()
+    }));
+    const obj: { [key: string]: string | boolean | number | null } = {};
+    for (const row of arr) {
+        obj[row[0]] = toNumberBooleanOrString(row[1]);
+    }
+    return JSON.stringify(obj);
+}
+
+const csvToJsonKeysBlankNull: AmendmentModule = {
+    name: "CSV to JSON Blank Null",
+    repr: "csv-to-json",
+    description: "Converts a specific CSV format into JSON. First column are the keys, second column are the values. The keys will always be treated as strings. Number conversions will happen if possible. If the string is TRUE or FALSE (case-insensitive), it will be converted to a boolean. Blank values will be set to null. All keys and values are trimmed before processing.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return csvToJson(text);
+    }
+}
+
+const tsvToJsonKeysBlankNull: AmendmentModule = {
+    name: "TSV to JSON Blank Null",
+    repr: "tsv-to-json",
+    description: "Converts a specific TSV format into JSON. First column are the keys, second column are the values. The keys will always be treated as strings. Number conversions will happen if possible. If the string is TRUE or FALSE (case-insensitive), it will be converted to a boolean. Blank values will be set to null. All keys and values are trimmed before processing.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return csvToJson(text.replaceAll("\t", ","));
+    }
+}
+
+
+const csvToJsonKeys: AmendmentModule = {
+    name: "CSV to JSON Strings only",
+    repr: "csv-to-json-strings",
+    description: "Converts a specific CSV format into JSON. First column are the keys, second column are the values. Everything will remain a string.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        text = text.trim();
+        const arr = text.split("\n").map(sp => sp.split(",").map(s => {
+            return s.trim()
+        }));
+        const obj: { [key: string]: string } = {};
+        for (const row of arr) {
+            obj[row[0]] = (row[1]);
+        }
+        return JSON.stringify(obj);
+    }
+}
+
+const spaceToTabs: AmendmentModule = {
+    name: "Space to Tabs",
+    repr: "space-to-tabs",
+    description: "Any run of spaces more than 4 long gets changed to one tab",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.replace(/ {4,}/g, '\t');
+    }
+}
+
+const stripLeadingSpaces: AmendmentModule = {
+    name: "Strip Leading and Trailing Spaces",
+    repr: "strip-leading-spaces",
+    description: "Run str.strip (trim) on each line",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.split("\n").map(t => t.trim()).join("\n");
+    }
+}
+
+const extractNumberFromCsv: AmendmentModule = {
+    name: "Extract Number From CSV",
+    repr: "extract-number-from-csv",
+    description: "Given a CSV, replace all cells with the first \"number\" present in that cell, if any of them contain text. For example, if a cell contained \"val = 333\", this should change the cell to just 333.",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        function findFirstNumber(str: string): string {
+            const match = str.match(/-?\d+(\.\d+)?/);
+            return match ? match[0] : "";
+        }
+        return text.split("\n").map(t => t.split(",").map(v=>findFirstNumber(v)).join(",")).join("\n");
+
+    }
+}
+
 export const amendmentModules: AmendmentModule[] = [
-    pandocMarkdownToHTML,
-    align, plusMinus, fixUnicodeEquations,
-    fakeListToList,
-    pdfNewlineRemover, softWrapper,
     textToList, numbersToList, toUpper, toUnixPath, toWindowsPath,
-    literalToString, stringToLiteral, stringCounter, toMathAM, wordMatrixToCode,
-    transposeMatrix
+    literalToString, stringToLiteral, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
+    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull,  csvToJsonKeys, spaceToTabs, stripLeadingSpaces, extractNumberFromCsv,
+    pandocMarkdownToHTML,
+    align, plusMinus, fakeListToList,
+    pdfNewlineRemover, softWrapper,
 ];

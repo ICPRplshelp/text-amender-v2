@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment, ReactNode, SyntheticEvent, useState } from 'react'
+import {ChangeEvent, Fragment, ReactNode, SyntheticEvent, useState} from 'react'
 import './App.css'
 import {
     Box,
@@ -12,10 +12,9 @@ import {
     TextField,
     Tooltip
 } from "@mui/material";
-import { amendmentModules } from "./shared/amendment-modules.ts";
+import {amendmentModules} from "./shared/amendment-modules.ts";
 import CodeBlock from "./components/CodeBlock";
-import { AmendmentModule } from "./shared/interfaces.ts";
-
+import {AmendmentModule} from "./shared/interfaces.ts";
 
 
 const ITEM_HEIGHT = 48;
@@ -28,6 +27,16 @@ const MenuProps = {
         },
     },
 };
+
+
+// function groupIntoCategories(modules: AmendmentModule[]): AmendmentCategoryHolder[] {
+//     return Object.keys(AmendmentCategories).map(category => {
+//         return {
+//             category: category,
+//             modules: modules.filter(module => module.category === category)
+//         }
+//     })
+// }
 
 
 function App() {
@@ -94,7 +103,7 @@ function App() {
                         display: "flex", flexDirection: "column", gap: "1em",
 
                     }}>
-                        <FormControl >
+                        <FormControl>
                             <InputLabel id="dropdown-label"> {optionPrompt} </InputLabel>
                             <Select
                                 label={optionPrompt}
@@ -122,12 +131,12 @@ function App() {
                         />
 
                         <Button variant={"contained"} onClick={handleClick07}
-                            style={{ minWidth: "310px" }}
+                                style={{minWidth: "310px"}}
                         >
                             Process me!
                         </Button>
 
-                        <Box sx={{ display: "flex", flexDirection: "row", gap: "1em", justifyContent: "center" }}>
+                        <Box sx={{display: "flex", flexDirection: "row", gap: "1em", justifyContent: "center"}}>
 
                             <Tooltip
                                 placement={"left"}
@@ -142,15 +151,15 @@ function App() {
                                     console.log("I couldn't copy it!");
                                 });
                             }}>
-                                    Copy
-                                </Button></Tooltip>
+                                Copy
+                            </Button></Tooltip>
                             <Tooltip
                                 placement={"right"}
                                 title={"Copy to input"}><Button variant={"outlined"} onClick={() => {
-                                    setInput(output);
-                                }}>
-                                    Pipe
-                                </Button></Tooltip>
+                                setInput(output);
+                            }}>
+                                Pipe
+                            </Button></Tooltip>
 
                         </Box>
                         <CodeBlock>
