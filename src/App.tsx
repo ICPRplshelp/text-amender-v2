@@ -15,6 +15,8 @@ import {
 import {amendmentModules} from "./shared/amendment-modules.ts";
 import CodeBlock from "./components/CodeBlock";
 import {AmendmentModule} from "./shared/interfaces.ts";
+import {StringPipe} from "./shared/string-pipe.ts";
+import PipeList from "./components/PipeList/pipe-list.tsx";
 
 
 const ITEM_HEIGHT = 48;
@@ -45,6 +47,8 @@ function App() {
     const copyMe = () => {
         setOpen(true);
     };
+
+    const [stringPipe, _] = useState(new StringPipe(amendmentModules));
 
 
     const handleClose = (_event: SyntheticEvent | Event, reason?: string) => {
@@ -97,6 +101,11 @@ function App() {
         <>
             <h1>Text Amender 2.0</h1>
             <div>
+
+
+                <PipeList stringPipe={stringPipe}>
+
+                </PipeList>
 
                 <FormControl>
                     <Box sx={{
