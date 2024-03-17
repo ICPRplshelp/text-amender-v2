@@ -1,4 +1,4 @@
-import {AmendmentModule} from "./interfaces.ts";
+import {AmendmentCategories, AmendmentModule} from "./interfaces.ts";
 
 export class StringPipe {
     modules: AmendmentModule[];
@@ -12,5 +12,18 @@ export class StringPipe {
 
     constructor(modules: AmendmentModule[]) {
         this.modules = modules;
+    }
+
+    /**
+     * Returns the extension, with no dot in front of it.
+     */
+    getExtension() {
+        let currentExtension = "txt";
+        for(const module of this.modules){
+            if(module.category === AmendmentCategories.ForceExtension){
+                currentExtension = module.repr.split("-")[0] ?? ".txt";
+            }
+        }
+        return currentExtension;
     }
 }

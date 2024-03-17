@@ -163,7 +163,7 @@ const toUnixPath: AmendmentModule = {
     name: "Unix Path",
     repr: "unix-path",
     description: "text.replace(R\"\\\", \"/\")",
-    category: AmendmentCategories.Strings,
+    category: AmendmentCategories.Paths,
     inputType: "Text",
     operation: (text) => {
         return text.replaceAll("\\", "/");
@@ -173,10 +173,15 @@ const toUnixPath: AmendmentModule = {
 const toWindowsPath: AmendmentModule = {
     name: "Windows Path",
     repr: "windows-path",
-    description: "text.replace(\"/\", R\"\\\")",
-    category: AmendmentCategories.Strings,
+    description: "text.replace(\"/\", R\"\\\"); also renames /c and /mnt/c for bash / wsl users",
+    category: AmendmentCategories.Paths,
     inputType: "Text",
     operation: (text) => {
+        if(text.startsWith("/c")){
+            text = text.replace("/c", "C:");
+        } else if (text.startsWith("/mnt/c")) {
+            text = text.replace("/mnt/c", "C:");
+        }
         return text.replaceAll("/", "\\");
     }
 }
@@ -332,6 +337,19 @@ function toNumberBooleanOrString(s: string) {
     return trimmed;
 }
 
+
+function csvToList(text: string) {
+    return text.split("\n").map(sp => sp.split(",").map(s => {
+        return s.trim()
+    }));
+}
+
+function listToCSV(text: (string | number | boolean | undefined | null)[][]): string {
+    const csv = text.map(row => row.join(","));
+    return csv.join("\n");
+}
+
+
 function csvToJson(text: string) {
     text = text.trim();
     const arr = text.split("\n").map(sp => sp.split(",").map(s => {
@@ -403,6 +421,46 @@ const stripLeadingSpaces: AmendmentModule = {
     }
 }
 
+const strip: AmendmentModule = {
+    name: "Strip",
+    repr: "strip",
+    description: "str.strip() (or trim in Java/JS)",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.trim();
+    }
+}
+
+
+function findIndices<T>(list: T[], predicate: (value: T) => boolean): number[] {
+    const indices: number[] = [];
+    for (let i = 0; i < list.length; i++) {
+        if (predicate(list[i])) {
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
+
+const selectFromCSV: AmendmentModule = {
+    name: "Remove TEMP and blank columns from CSV",
+    repr: "select-from-csv",
+    description: "Removes all columns with a header starting with TEMP (case sensitive)",
+    category: AmendmentCategories.CSV,
+    operation: (text) => {
+        const csvData = csvToList(text);
+        if (csvData.length === 0) {
+            return "Invalid input";
+        }
+        const header = csvData[0];
+        const indices = findIndices(header, (t) => t.trim() === "" || t.startsWith("TEMP"));
+        const filteredCSV = csvData.map((sl) => sl.filter((_, index) => !indices.includes(index)));
+        return listToCSV(filteredCSV);
+    }
+}
+
+
 const extractNumberFromCsv: AmendmentModule = {
     name: "Extract Number From CSV",
     repr: "extract-number-from-csv",
@@ -413,16 +471,79 @@ const extractNumberFromCsv: AmendmentModule = {
             const match = str.match(/-?\d+(\.\d+)?/);
             return match ? match[0] : "";
         }
-        return text.split("\n").map(t => t.split(",").map(v=>findFirstNumber(v)).join(",")).join("\n");
 
+        return text.split("\n").map(t => t.split(",").map(v => findFirstNumber(v)).join(",")).join("\n");
     }
 }
 
+const toGitBash: AmendmentModule = {
+    name: "To Git Bash Path",
+    repr: "git-bash",
+    description: "Converts a Windows file path to a Git bash file path",
+    category: AmendmentCategories.Paths,
+    operation: (text) => {
+        const t1 = text.replaceAll("\\", "/");
+        return t1.replace("C:", "/c");
+    }
+}
+
+const toWSLPath: AmendmentModule = {
+    name: "To WSL Path",
+    repr: "git-bash",
+    description: "Converts a Windows file path to a Git bash file path",
+    category: AmendmentCategories.Paths,
+    operation: (text) => {
+        const t1 = text.replaceAll("\\", "/");
+        return t1.replace("C:", "/mnt/c");
+    }
+}
+
+
+const stripSurroundingQuotes: AmendmentModule = {
+    name: "Strip surrounding quotes",
+    repr: "Strip surrounding quotes",
+    description: "Strip surrounding quotation marks, single or double quotes",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.replace(/^['"]+|['"]+$/g, '');
+    }
+}
+
+
+const thisPCFoldersAccessToFullPath: AmendmentModule = {
+    name: "This PC Folders to Full Path",
+    repr: "Strip surrounding quotes",
+    description: "Appends the full Windows path to folders in THIS PC: 3D Objects, Desktop, Documents, Downloads, Music, Pictures, Videos",
+    category: AmendmentCategories.Paths,
+    operation: (text) => {
+        const targetFolders = ["3D Objects", "Desktop", "Documents", "Downloads", "Music", "Pictures", "Videos"];
+        for (const tf of targetFolders) {
+            if (text.startsWith(tf)) {
+                text = text.replace(tf, `C:\\Users\\%USERNAME%\\${tf}`)
+            }
+        }
+        return text;
+    }
+}
+
+const extAmendmentModules: AmendmentModule[] = ["csv", "json", "md", "html", "tex"].map(ext => {
+    return {
+        name: `.${ext}`,
+        repr: `${ext}-ext`,
+        description: `Changes the download format to .${ext}`,
+        category: AmendmentCategories.ForceExtension,
+        operation: (text) => {
+            return text
+        }
+    }
+})
+
+
 export const amendmentModules: AmendmentModule[] = [
-    textToList, numbersToList, toUpper, toUnixPath, toWindowsPath,
+    textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
     literalToString, stringToLiteral, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
-    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull,  csvToJsonKeys, spaceToTabs, stripLeadingSpaces, extractNumberFromCsv,
-    pandocMarkdownToHTML,
+    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, stripLeadingSpaces, extractNumberFromCsv,
+    pandocMarkdownToHTML, strip, selectFromCSV,
     align, plusMinus, fakeListToList,
-    pdfNewlineRemover, softWrapper,
+    pdfNewlineRemover, softWrapper, ...extAmendmentModules
 ];
