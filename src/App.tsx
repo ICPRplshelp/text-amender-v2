@@ -10,6 +10,7 @@ import ModuleSelector from "./components/ModuleSelector/module-selector.tsx";
 
 
 function App() {
+    const [altered, setAltered] = useState(false);
     const [open, setOpen] = useState(false);
     const [, forceUpdate] = useReducer(x => x + 1, 0);
     const copyMe = () => {
@@ -26,7 +27,7 @@ function App() {
 
         setOpen(false);
     };
-
+    const amendedFileName = "amended_file";
 
     const [selectedModule,] = useState<AmendmentModule>(amendmentModules[0]);
 
@@ -39,6 +40,7 @@ function App() {
     };
 
     const handleClick07 = () => {
+        setAltered(true);
         const newTextValue = stringPipe.processModule(input);
         setOutput(newTextValue);
 
@@ -51,6 +53,15 @@ function App() {
             </Button>
         </Fragment>
     );
+
+    const downloadFile = (_opt: string) => {
+        const element = document.createElement("a");
+        const file = new Blob([_opt], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = `${amendedFileName}.${stringPipe.getExtension()}`;
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
+    }
 
 
     return (
@@ -138,6 +149,20 @@ function App() {
                                             }}>
                                                 Copy
                                             </Button></Tooltip>
+
+                                            <Tooltip
+                                                placement={"bottom"}
+                                                title={`Download as ${amendedFileName}.${stringPipe.getExtension()}`}><Button
+                                                disabled={!altered}
+                                                variant={"outlined"} onClick={() => {
+                                                downloadFile(output);
+                                            }}>
+                                                Download
+                                            </Button></Tooltip>
+
+
+
+
                                             <Tooltip
                                                 placement={"right"}
                                                 title={"Copy to input"}><Button variant={"outlined"} onClick={() => {
@@ -156,6 +181,8 @@ function App() {
 
                                 <Grid item xs={6}>
                                     <Typography className={"read-the-docs"}>                Text Amender is a tool that processes raw text programmatically, all online. Add something from the options to the pipe by clicking on it. When "process me" is clicked, the text is processed on every item in the pipe from top to bottom.
+
+                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a>
                                     </Typography>
                                 </Grid>
 

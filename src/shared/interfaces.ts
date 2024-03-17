@@ -1,13 +1,16 @@
 export enum AmendmentCategories {
     // Anything that has to deal with document formatted for pandoc
-    Pandoc = "Pandoc",
+    Strings = "Strings",
+    CSV = "CSV",
+
     // Anything that deals with equations copied off Microsoft Word
     WordEquations = "WordEquations",
     // Anything that deals with reading documents that are not plain text
     Paper = "Paper",
     Boilerplate = "Boilerplate",
-    Strings = "Strings",
-    CSV = "CSV",
+    Paths = "Paths",
+    Pandoc = "Pandoc",
+    ForceExtension = "ForceExtension",  // this only changes the download label. For that, have the operation do nothing, and the repr, everything before the first dash is the download extension
 }
 
 
