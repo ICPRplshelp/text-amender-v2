@@ -478,7 +478,7 @@ const extractNumberFromCsv: AmendmentModule = {
 
 const toGitBash: AmendmentModule = {
     name: "To Git Bash Path",
-    repr: "git-bash",
+    repr: "git-bash-2",
     description: "Converts a Windows file path to a Git bash file path",
     category: AmendmentCategories.Paths,
     operation: (text) => {
@@ -489,7 +489,7 @@ const toGitBash: AmendmentModule = {
 
 const toWSLPath: AmendmentModule = {
     name: "To WSL Path",
-    repr: "git-bash",
+    repr: "wsl-path-2",
     description: "Converts a Windows file path to a Git bash file path",
     category: AmendmentCategories.Paths,
     operation: (text) => {
@@ -538,12 +538,139 @@ const extAmendmentModules: AmendmentModule[] = ["csv", "json", "md", "html", "te
     }
 })
 
+const removeDuplicatesFromList: AmendmentModule = {
+    name: "Remove Duplicates",
+    repr: "dupe-remover",
+    description: "Given a list of strings delimited by a newline, remove duplicates and preserve order otherwise",
+    category: AmendmentCategories.Strings,
+    operation: (text: string) => {
+        const strs = text.split("\n");
+        const uniqueStrings = strs.filter((value, index, self) => {
+            return self.indexOf(value) === index;
+        });
+        return uniqueStrings.join("\n");
+    }
+}
+
+const toMarkdownTable: AmendmentModule = {
+    name: "To Markdown Table",
+    repr: "md-tbl",
+    description: "Converts a CSV to a Markdown table",
+    category: AmendmentCategories.CSV,
+    operation: (text) => {
+        const arr = csvToList(text);
+        const maxLength = Math.max(...arr.map(subArr => subArr.length));
+        let table = '';
+        for (let i = 0; i < arr.length; i++) {
+            const row = arr[i];
+            for (let j = row.length; j < maxLength; j++) {
+                row.push('');
+            }
+            table += '| ' + row.join(' | ') + ' |\n';
+            if (i === 0) {
+                table += '| ' + '--- |'.repeat(maxLength) + '\n';
+            }
+        }
+        return table;
+    }
+}
+const toLaTeXTable: AmendmentModule = {
+    name: "To LaTeX Table",
+    repr: "tex-tbl",
+    description: "Converts a CSV to a LaTeX table",
+    category: AmendmentCategories.CSV,
+    operation: (text) => {
+        const arr = csvToList(text);
+        const maxLength = Math.max(...arr.map(subArr => subArr.length));
+        let table = '\\begin{tabular}{' + 'c '.repeat(maxLength) + '}\n';
+        for (let i = 0; i < arr.length; i++) {
+            const row = arr[i];
+            for (let j = row.length; j < maxLength; j++) {
+                row.push('');
+            }
+            table += row.join(' & ') + ' \\\\\n';
+            if (i === 0) {
+                table += '\\hline\n';
+            }
+        }
+        table += '\\end{tabular}';
+        return table;
+    }
+}
+
+
+function nanToDefault(num: number, default2: number) : number {
+    if (isNaN(num)){
+        return default2;
+    }
+    return num;
+}
+
+const csvToJSONRows: AmendmentModule = {
+    name: "CSV to JSON Rows",
+    repr: "csv-to-json-real",
+    description: "Convert a CSV to a JSON, each element is a row. Must have a header. The first actual row determines the types, which is inferred",
+    category: AmendmentCategories.CSV,
+    operation: (text) => {
+        const lines = text.split('\n');
+        const headers = lines[0].split(',');
+        const types = lines[1].split(',').map(item => isNaN(Number(item)) ? 'string' : 'number');
+        const json = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const obj: { [key: string]: string | boolean | number | null } = {};
+            const currentline = lines[i].split(',');
+
+            for (let j = 0; j < headers.length; j++) {
+                obj[headers[j]] = types[j] === 'number' ? nanToDefault(parseFloat(currentline[j]), 0) : currentline[j];
+            }
+
+            json.push(obj);
+        }
+
+        return JSON.stringify(json);
+    }
+}
+
+
+const json2DListToCSV: AmendmentModule = {
+    name: "JSON 2D list to CSV",
+    repr: "json-2d-csv",
+    description: "Converts a 2D JSON array to a CSV",
+    category: AmendmentCategories.CSV,
+    operation: (text) => {
+        const jsonStr = text;
+        let data;
+        try {
+            data = JSON.parse(jsonStr) as string[][];
+        } catch (e) {
+            return ("Invalid JSON");
+        }
+
+        if (!Array.isArray(data) || !data.every(Array.isArray)) {
+            return ("Not a 2D array");
+        }
+
+        const maxCols = Math.max(...data.map(row => row.length));
+
+        return data.map(row => {
+            const newRow = row.slice();
+            while (newRow.length < maxCols) {
+                newRow.push("");
+            }
+            return newRow.join(",");
+        }).join("\n");
+
+    }
+}
+
+
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
-    literalToString, stringToLiteral, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
+    literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, stripLeadingSpaces, extractNumberFromCsv,
-    pandocMarkdownToHTML, strip, selectFromCSV,
-    align, plusMinus, fakeListToList,
+    pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable,csvToJSONRows,
+    align, plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper, ...extAmendmentModules
 ];

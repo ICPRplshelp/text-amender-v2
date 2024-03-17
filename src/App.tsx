@@ -181,6 +181,8 @@ function App() {
 
                                 <Grid item xs={6}>
                                     <Typography className={"read-the-docs"}>                Text Amender is a tool that processes raw text programmatically, all online. Add something from the options to the pipe by clicking on it. When "process me" is clicked, the text is processed on every item in the pipe from top to bottom.
+
+                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a>
                                     </Typography>
                                 </Grid>
 
