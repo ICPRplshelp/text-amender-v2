@@ -177,7 +177,7 @@ const toWindowsPath: AmendmentModule = {
     category: AmendmentCategories.Paths,
     inputType: "Text",
     operation: (text) => {
-        if(text.startsWith("/c")){
+        if (text.startsWith("/c")) {
             text = text.replace("/c", "C:");
         } else if (text.startsWith("/mnt/c")) {
             text = text.replace("/mnt/c", "C:");
@@ -599,8 +599,8 @@ const toLaTeXTable: AmendmentModule = {
 }
 
 
-function nanToDefault(num: number, default2: number) : number {
-    if (isNaN(num)){
+function nanToDefault(num: number, default2: number): number {
+    if (isNaN(num)) {
         return default2;
     }
     return num;
@@ -632,6 +632,20 @@ const csvToJSONRows: AmendmentModule = {
     }
 }
 
+const newTypeOldType: AmendmentModule = {
+    name: "Python type annotations to C type annotations",
+    repr: "py-to-c",
+    description: "arg1: T, arg2: T converts to T arg1, T arg2",
+    category: AmendmentCategories.Boilerplate,
+    operation: (text) => {
+        const args = text.split(',').map(arg => arg.trim());
+        return args.map(arg => {
+            const [name, type] = arg.split(':').map(str => str.trim());
+            return `${type} ${name}`;
+        }).join(', ');
+    }
+}
+
 
 const json2DListToCSV: AmendmentModule = {
     name: "JSON 2D list to CSV",
@@ -660,17 +674,15 @@ const json2DListToCSV: AmendmentModule = {
             }
             return newRow.join(",");
         }).join("\n");
-
     }
 }
-
 
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
     literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
-    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, stripLeadingSpaces, extractNumberFromCsv,
-    pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable,csvToJSONRows,
+    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, stripLeadingSpaces, extractNumberFromCsv,
+    pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     align, plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper, ...extAmendmentModules
 ];
