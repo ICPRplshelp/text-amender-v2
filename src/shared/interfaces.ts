@@ -10,7 +10,9 @@ export enum AmendmentCategories {
     Boilerplate = "Boilerplate",
     Paths = "Paths",
     Pandoc = "Pandoc",
-    ForceExtension = "ForceExtension",  // this only changes the download label. For that, have the operation do nothing, and the repr, everything before the first dash is the download extension
+    Markdown = "Markdown",
+    ForceExtension = "ForceExtension",
+    // this only changes the download label. For that, have the operation do nothing, and the repr, everything before the first dash is the download extension
 }
 
 

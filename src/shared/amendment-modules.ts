@@ -88,7 +88,7 @@ const softWrapper: AmendmentModule = {
     name: "Soft Wrapper",
     repr: "soft-wrapper",
     inputType: "Text from MD",
-    category: AmendmentCategories.Paper,
+    category: AmendmentCategories.Markdown,
 
     description: "Removes all lone newline characters. Do not modify text in markdown source code blocks.",
     operation: (text) => {
@@ -647,6 +647,54 @@ const newTypeOldType: AmendmentModule = {
 }
 
 
+
+const markdownHeadingLeft: AmendmentModule = {
+    name: "Shift Markdown Heading <-",
+    repr: "md-head-left",
+    description: "Shift heading backwards (h2->h1)",
+    category: AmendmentCategories.Markdown,
+    operation: (markdown) => {
+        return markdown.replace(/^(#{2,})/gm, (match) => {
+            return match.slice(1);
+        });
+    }
+}
+
+
+const markdownHeadingRight: AmendmentModule = {
+    name: "Shift Markdown Heading ->",
+    repr: "md-head-right",
+    description: "Shift heading forwards (h1->h2)",
+    category: AmendmentCategories.Markdown,
+    operation: (markdown) => {
+        return markdown.replace(/^(#)/gm, (match) => {
+            return '#' + match;
+        });
+    }
+}
+
+const markdownShiftImageLinks: AmendmentModule = {
+    name: "Subdirectory Markdown Image Links",
+    repr: "md-subdir",
+    description: "First line should contain the name of the directory, dubbed 'dir'. The rest of it should be markdown text. Changes all image links with format ![A][foo] to ![A][dir/foo]",
+    category: AmendmentCategories.Markdown,
+    operation: (markdown) => {
+        function splitLines(text: string): [string, string] {
+            const lines = text.split('\n');
+            const firstLine = lines[0];
+            const remainingLines = lines.slice(1).join('\n');
+            return [firstLine, remainingLines];
+        }
+        function shiftImageLinks(text: string, repl: string): string {
+            const regex = /!\[(.*?)\]\[(.*?)\]/g;
+            return text.replace(regex, `![$1][${repl}/$2]`);
+        }
+        const [first, text] = splitLines(markdown);
+        return shiftImageLinks(text, first);
+    }
+}
+
+
 const json2DListToCSV: AmendmentModule = {
     name: "JSON 2D list to CSV",
     repr: "json-2d-csv",
@@ -684,5 +732,9 @@ export const amendmentModules: AmendmentModule[] = [
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, stripLeadingSpaces, extractNumberFromCsv,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     align, plusMinus, fakeListToList, json2DListToCSV,
-    pdfNewlineRemover, softWrapper, ...extAmendmentModules
+    pdfNewlineRemover, softWrapper,
+    markdownHeadingLeft,
+    markdownHeadingRight,
+    markdownShiftImageLinks,
+    ...extAmendmentModules
 ];
