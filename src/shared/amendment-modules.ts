@@ -739,7 +739,7 @@ const removeB2BNewLines: AmendmentModule = {
 const setMinus: AmendmentModule = {
     name: "Set Minus",
     repr: "set-minus",
-    description: "If all elements are seperated by newlines, then return A \\ B, the split being the first line consisting of only dashes (---).",
+    description: "If all elements are seperated by newlines, then return A \\ B, the split being the first line consisting of only dashes (---). This is the multi-set minus from SQL.",
     category: AmendmentCategories.Strings,
     operation: (markdown) => {
         const asList = markdown.split("\n");
@@ -749,8 +749,15 @@ const setMinus: AmendmentModule = {
         }
         const setA = asList.slice(0, separatorIdx);
         const setB = asList.slice(separatorIdx);
-        const setBset = new Set<string>(setB);
-        const setC: string[] = setA.filter(s => !setBset.has(s));
+        const setC: string[] = [];
+        for (const elem of setA) {
+            const indexFound = setB.findIndex(s => s === elem);
+            if (indexFound !== undefined) {
+                setB.splice(indexFound, 1);
+            } else {
+                setC.push(elem);
+            }
+        }
         return setC.join("\n");
     }
 }
