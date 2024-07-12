@@ -647,7 +647,6 @@ const newTypeOldType: AmendmentModule = {
 }
 
 
-
 const markdownHeadingLeft: AmendmentModule = {
     name: "Shift Markdown Heading <-",
     repr: "md-head-left",
@@ -685,10 +684,12 @@ const markdownShiftImageLinks: AmendmentModule = {
             const remainingLines = lines.slice(1).join('\n');
             return [firstLine, remainingLines];
         }
+
         function shiftImageLinks(text: string, repl: string): string {
             const regex = /!\[(.*?)\]\[(.*?)\]/g;
             return text.replace(regex, `![$1][${repl}/$2]`);
         }
+
         const [first, text] = splitLines(markdown);
         return shiftImageLinks(text, first);
     }
@@ -725,6 +726,35 @@ const json2DListToCSV: AmendmentModule = {
     }
 }
 
+const removeB2BNewLines: AmendmentModule = {
+    name: "Remove consecutive newlines",
+    repr: "b2b-newlines",
+    description: "Remove any consecutive newline, i.e. \\n should never appear twice or more in a row.",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        return markdown.replace(/\n{2,}/g, '\n');
+    }
+}
+
+const setMinus: AmendmentModule = {
+    name: "Set Minus",
+    repr: "set-minus",
+    description: "If all elements are seperated by newlines, then return A \\ B, the split being the first line consisting of only dashes (---).",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        const asList = markdown.split("\n");
+        let separatorIdx = asList.findIndex(s => /^-+$/.test(s));
+        if (separatorIdx === undefined) {
+            separatorIdx = asList.length;
+        }
+        const setA = asList.slice(0, separatorIdx);
+        const setB = asList.slice(separatorIdx);
+        const setBset = new Set<string>(setB);
+        const setC: string[] = setA.filter(s => !setBset.has(s));
+        return setC.join("\n");
+    }
+}
+
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
@@ -736,5 +766,6 @@ export const amendmentModules: AmendmentModule[] = [
     markdownHeadingLeft,
     markdownHeadingRight,
     markdownShiftImageLinks,
+    removeB2BNewLines, setMinus,
     ...extAmendmentModules
 ];
