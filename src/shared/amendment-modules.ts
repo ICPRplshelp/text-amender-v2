@@ -744,20 +744,22 @@ const setMinus: AmendmentModule = {
     operation: (markdown) => {
         const asList = markdown.split("\n");
         let separatorIdx = asList.findIndex(s => /^-+$/.test(s));
-        if (separatorIdx === undefined) {
+        if (separatorIdx === -1) {
             separatorIdx = asList.length;
         }
         const setA = asList.slice(0, separatorIdx);
-        const setB = asList.slice(separatorIdx);
+        const setB = asList.slice(separatorIdx + 1);
+        console.log("Sets are", setA, setB);
         const setC: string[] = [];
         for (const elem of setA) {
             const indexFound = setB.findIndex(s => s === elem);
-            if (indexFound !== undefined) {
+            if (indexFound !== -1) {
                 setB.splice(indexFound, 1);
             } else {
                 setC.push(elem);
             }
         }
+        console.log(setC);
         return setC.join("\n");
     }
 }
