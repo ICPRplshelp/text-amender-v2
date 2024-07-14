@@ -736,6 +736,26 @@ const removeB2BNewLines: AmendmentModule = {
     }
 }
 
+const lenOfString: AmendmentModule = {
+    name: "String length",
+    repr: "string-length",
+    description: "len(text)",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.length.toString();
+    }
+}
+
+const newlinesOfString: AmendmentModule = {
+    name: "String line count",
+    repr: "str-line-count",
+    description: "Count the no. of lines in this string",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.split("\n").length.toString();
+    }
+}
+
 const setMinus: AmendmentModule = {
     name: "Set Minus",
     repr: "set-minus",
@@ -775,6 +795,6 @@ export const amendmentModules: AmendmentModule[] = [
     markdownHeadingLeft,
     markdownHeadingRight,
     markdownShiftImageLinks,
-    removeB2BNewLines, setMinus,
+    removeB2BNewLines, setMinus, lenOfString, newlinesOfString,
     ...extAmendmentModules
 ];
