@@ -1,4 +1,6 @@
 import {AmendmentCategories, AmendmentModule} from "./interfaces.ts";
+import * as yaml from 'js-yaml';
+
 
 const align: AmendmentModule = {
     name: "Align",
@@ -63,7 +65,7 @@ const fakeListToList: AmendmentModule = {
     repr: "fake-list-to-list",
     description: "Did someone try to write a list by using dashes, but forgot to add newlines before? Does some text look like this: \"-Point 1 -Point 2- Point 3-Point 4?\" This solves it.",
     inputType: "Text",
-    category: AmendmentCategories.Paper,
+    category: AmendmentCategories.Strings,
     operation: (text) => {
         const pattern = /-/g;
         return text.replaceAll(pattern, '\n\n - ');
@@ -75,7 +77,7 @@ const pdfNewlineRemover: AmendmentModule = {
     repr: "pdf-newline-remover",
     description: "Removes all newlines that aren't preceded with a period",
     inputType: "Text from PDF",
-    category: AmendmentCategories.Paper,
+    category: AmendmentCategories.Strings,
     operation: (text) => {
         text = text.replaceAll(".\n", "DOTNEWNt34#$@%#");
         text = text.replaceAll("\n", " ");
@@ -122,7 +124,7 @@ const textToList: AmendmentModule = {
     name: "Text to List",
     repr: "text-to-list",
     description: "print(text.split('\\n'))",
-    category: AmendmentCategories.Boilerplate,
+    category: AmendmentCategories.Lists,
     inputType: "Text",
     operation: (text) => {
         return JSON.stringify(text.trim().split("\n"))
@@ -133,7 +135,7 @@ const numbersToList: AmendmentModule = {
     name: "Numbers to List",
     repr: "num-to-list",
     description: "print([int(n) for n in text.split('\\n')]); 0 for invalid",
-    category: AmendmentCategories.Boilerplate,
+    category: AmendmentCategories.Lists,
     inputType: "Text",
     operation: (text) => {
         const safeParseFloat = (content: string) => {
@@ -483,7 +485,8 @@ const toGitBash: AmendmentModule = {
     category: AmendmentCategories.Paths,
     operation: (text) => {
         const t1 = text.replaceAll("\\", "/");
-        return t1.replace("C:", "/c");
+        const t2 = t1.replace(/^([A-Z]):/, "/$1");
+        return (t2.startsWith("/") && t2.length >= 2) ? (t2[0] + t2[1].toLowerCase() + t2.slice(2)) : t2;
     }
 }
 
@@ -494,7 +497,8 @@ const toWSLPath: AmendmentModule = {
     category: AmendmentCategories.Paths,
     operation: (text) => {
         const t1 = text.replaceAll("\\", "/");
-        return t1.replace("C:", "/mnt/c");
+        const t2 = t1.replace(/^([A-Z]):/, "/mnt/$1");
+        return (t2.startsWith("/mnt/") && t2.length >= 6) ? (t2.slice(0, 5) + t2[5].toLowerCase() + t2.slice(6)) : t2;
     }
 }
 
@@ -542,7 +546,7 @@ const removeDuplicatesFromList: AmendmentModule = {
     name: "Remove Duplicates",
     repr: "dupe-remover",
     description: "Given a list of strings delimited by a newline, remove duplicates and preserve order otherwise",
-    category: AmendmentCategories.Strings,
+    category: AmendmentCategories.Lists,
     operation: (text: string) => {
         const strs = text.split("\n");
         const uniqueStrings = strs.filter((value, index, self) => {
@@ -636,12 +640,26 @@ const newTypeOldType: AmendmentModule = {
     name: "Python type annotations to C type annotations",
     repr: "py-to-c",
     description: "arg1: T, arg2: T converts to T arg1, T arg2",
-    category: AmendmentCategories.Boilerplate,
+    category: AmendmentCategories.Code,
     operation: (text) => {
         const args = text.split(',').map(arg => arg.trim());
         return args.map(arg => {
             const [name, type] = arg.split(':').map(str => str.trim());
             return `${type} ${name}`;
+        }).join(', ');
+    }
+}
+
+const oldTypeNewType: AmendmentModule = {
+    name: "C type annotations to Python type annotations ",
+    repr: "c-to-py",
+    description: "T arg1, T arg2 converts to arg1: T, arg2: T",
+    category: AmendmentCategories.Code,
+    operation: (text) => {
+        const args = text.split(',').map(arg => arg.trim());
+        return args.map(arg => {
+            const [type, name] = arg.split(' ').filter(t => t.trim().length !== 0).map(str => str.trim());
+            return `${name}: ${type}`;
         }).join(', ');
     }
 }
@@ -760,7 +778,7 @@ const setMinus: AmendmentModule = {
     name: "Set Minus",
     repr: "set-minus",
     description: "If all elements are seperated by newlines, then return A \\ B, the split being the first line consisting of only dashes (---). This is the multi-set minus from SQL.",
-    category: AmendmentCategories.Strings,
+    category: AmendmentCategories.Lists,
     operation: (markdown) => {
         const asList = markdown.split("\n");
         let separatorIdx = asList.findIndex(s => /^-+$/.test(s));
@@ -784,17 +802,242 @@ const setMinus: AmendmentModule = {
     }
 }
 
+const yamlToJson: AmendmentModule = {
+    name: "YAML to JSON",
+    repr: "yaml-to-json",
+    description: "Converts YAML to JSON",
+    category: AmendmentCategories.Lists,
+    operation: (literal) => {
+        try {
+            const value = yaml.load(literal);
+            return JSON.stringify(value);
+        } catch (e) {
+            return "Invalid input";
+        }
+    }
+}
+
+const fileSystemFormat: AmendmentModule = {
+    name: "File system format",
+    repr: "file-system-format",
+    description: `Formats a "list" into a file system.
+    The list is a markdown list with a tab spacing of 2 (using spaces). For example: "-⎵a⏎-⎵b⏎⎵⎵- c" where ⏎ is a newline and ⎵ is a space.
+    You may specify a root directory by putting it in the first line without a leading slash.
+    
+    Submit something blank to get an example.
+    `,
+    category: AmendmentCategories.Lists,
+    operation: (_text: string) => {
+        const extraHelp: string = `
+== SAMPLE INPUT BELOW ==
+root  # this is optional
+- a
+- b
+- c
+  - d
+  - e
+    - f
+  - g
+- h
+        
+        `;
+        const lines = _text.split('\n');
+        let firstLine = "";
+        if (_text[0] !== '-') {
+            firstLine = lines[0] + "\n";
+            _text = lines.slice(1).join('\n');
+        }
+
+        // _text = _text.trim().replace(/([^:])(\n\s)/g, "$1:$2");
+
+        const appendColons = (st: string) => {
+            st = st.trim();
+            const lines = st.split("\n").filter(e => e !== '');
+            for (let i = 0; i < lines.length - 1; i++) {
+                const curNonSpace = (lines[i]).indexOf("-");
+                const nextNonSpace = (lines[i + 1]).indexOf("-");
+                if (curNonSpace === -1 || nextNonSpace === -1) {
+                    return "";
+                }
+                if (nextNonSpace > curNonSpace) {
+                    lines[i] = lines[i].trimEnd() + ":";
+                }
+            }
+            return lines.join("\n");
+        };
+        _text = appendColons(_text);
+
+        type FileSystemElement = string | { [key: string]: FileSystemElement[] };
+
+        function formatTree(elements: FileSystemElement[], prefix: string = ''): string {
+            let result = '';
+            const lastIndex = elements.length - 1;
+
+            elements.forEach((element, index) => {
+                const isLast = index === lastIndex;
+                const newPrefix = prefix + (isLast ? '    ' : '│   ');
+
+                if (typeof element === 'string') {
+                    result += `${prefix}${isLast ? '└── ' : '├── '}${element}\n`;
+                } else {
+                    const key = Object.keys(element)[0];
+                    result += `${prefix}${isLast ? '└── ' : '├── '}${key}\n`;
+                    result += formatTree(element[key], newPrefix);
+                }
+            });
+
+            return result;
+        }
+
+        try {
+            const value = yaml.load(_text);
+            if (Array.isArray(value)) {
+                return firstLine + formatTree(value);
+            } else {
+                return "Invalid input\n" + extraHelp;
+            }
+        } catch (e) {
+            return "Invalid input\n" + extraHelp;
+        }
+
+    }
+}
+
+const tokenize: AmendmentModule = {
+    name: "Tokenize",
+    repr: "tokenize",
+    description: `Convert something passed into the command line or shell into a Python or JS list of individual arguments. If this has multiple lines, it returns a 2D list, where each line is its own command.`,
+    category: AmendmentCategories.Lists,
+    operation: (_text: string) => {
+        function parseCommandLine(command: string): string[] {
+            const regex = /(?:[^\s"]+|"[^"]*")+/g;
+            const matches = command.match(regex);
+            return matches ? matches.map(arg => arg.replace(/(^"|"$)/g, '')) : [];
+        }
+
+        const cm2 = _text.trim().split("\n");
+        if (cm2.length <= 1) {
+            return JSON.stringify(parseCommandLine(_text));
+        } else {
+            return JSON.stringify(cm2.map(u => parseCommandLine(u)));
+        }
+    }
+}
+
+const replaceCommasWithNewlines: AmendmentModule = {
+    name: "Commas to Newlines",
+    repr: "ctn",
+    description: `,->\\n`,
+    category: AmendmentCategories.Lists,
+    operation: (_text: string) => {
+        return _text.split(",").map(t => t.trim()).join("\n");
+    }
+}
+const replaceNewlinesWithCommas: AmendmentModule = {
+    name: "Newlines to Commas",
+    repr: "ntc",
+    description: `\\n->, not including blank lines`,
+    category: AmendmentCategories.Lists,
+    operation: (_text: string) => {
+        return _text.split("\n").filter(t => t.trim().length >= 1).join(", ");
+    }
+}
+
+const encodeURI: AmendmentModule = {
+    name: "URL Escape text",
+    repr: "ec-uri",
+    description: "Makes a string URL encode-able (see that %20)?",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        return encodeURIComponent(markdown);
+    }
+}
+const decodeURI: AmendmentModule = {
+    name: "URL Unescape text",
+    repr: "ec-duri",
+    description: "Inverse of URL Escape Text",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        return decodeURIComponent(markdown);
+    }
+}
+
+const escapeHTML: AmendmentModule = {
+    name: "HTML Escape Text",
+    repr: "html-e",
+    description: "Makes text compatible with HTML (&gt)",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        function htmlEscape(input: string): string {
+            const escapeMap: { [key: string]: string } = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+                '`': '&#96;',
+                '=': '&#61;',
+                '/': '&#47;',
+                ' ': '&nbsp;',
+                '\n': '<br>',
+            };
+
+            return input.replace(/[&<>"'`=\/ \n]|[^\x20-\x7E]/g, (char) => {
+                if (escapeMap[char]) {
+                    return escapeMap[char];
+                }
+                return `&#${char.charCodeAt(0)};`;
+            });
+        }
+
+        return htmlEscape(markdown);
+    }
+}
+
+
+const unHTML: AmendmentModule = {
+    name: "HTML Un-Escape Text",
+    repr: "html-d",
+    description: "Makes text compatible with HTML (&gt)",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        function htmlUnescape(input: string): string {
+            const unescapeMap: { [key: string]: string } = {
+                '&amp;': '&',
+                '&lt;': '<',
+                '&gt;': '>',
+                '&quot;': '"',
+                '&#39;': "'",
+                '&#96;': '`',
+                '&#61;': '=',
+                '&#47;': '/',
+                '&nbsp;': ' ',
+                '<br>': '\n',
+            };
+
+            return input.replace(/&amp;|&lt;|&gt;|&quot;|&#39;|&#96;|&#61;|&#47;|&nbsp;|<br>|&#\d+;/g, (entity) => {
+                if (unescapeMap[entity]) {
+                    return unescapeMap[entity];
+                }
+                return String.fromCharCode(parseInt(entity.slice(2, -1), 10));
+            });
+        }
+
+        return htmlUnescape(markdown);
+    }
+}
+
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
     literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
-    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, stripLeadingSpaces, extractNumberFromCsv,
+    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     align, plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper,
     markdownHeadingLeft,
-    markdownHeadingRight,
-    markdownShiftImageLinks,
-    removeB2BNewLines, setMinus, lenOfString, newlinesOfString,
+    markdownHeadingRight, tokenize,
+    markdownShiftImageLinks, setMinus, fileSystemFormat,
+    removeB2BNewLines, lenOfString, newlinesOfString, yamlToJson, replaceCommasWithNewlines, replaceNewlinesWithCommas, encodeURI, decodeURI, escapeHTML, unHTML,
     ...extAmendmentModules
 ];

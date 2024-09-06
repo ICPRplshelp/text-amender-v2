@@ -81,7 +81,7 @@ function App() {
                             <Grid container spacing={2}>
 
                                 <Grid item md={4} xs={12}
-                                    className={"scrollable-div"}
+                                      className={"scrollable-div"}
                                 >
                                     <ModuleSelector modules={amendmentModules} onSelect={(_a) => {
                                         console.log("AMONG US");
@@ -92,10 +92,10 @@ function App() {
                                     </ModuleSelector></Grid>
 
                                 <Grid item md={2} xs={12} className={"scrollable-div"}><PipeList stringPipe={stringPipe}
-                                                                    delItemFromPipe={(idx) => {
-                                                                        stringPipe.modules.splice(idx, 1);
-                                                                        forceUpdate();
-                                                                    }}
+                                                                                                 delItemFromPipe={(idx) => {
+                                                                                                     stringPipe.modules.splice(idx, 1);
+                                                                                                     forceUpdate();
+                                                                                                 }}
                                 >
 
                                 </PipeList></Grid>
@@ -105,11 +105,11 @@ function App() {
                                                                        style={{width: "300px"}}
                                 >
                                     <Box style={{"padding": "5px"}}
-                                        sx={{
-                                        display: "flex", flexDirection: "column", gap: "1em",
+                                         sx={{
+                                             display: "flex", flexDirection: "column", gap: "1em",
 
 
-                                    }}>
+                                         }}>
                                         <TextField
                                             id="outlined-multiline-flexible"
                                             label={selectedModule.inputType}
@@ -118,6 +118,23 @@ function App() {
                                             fullWidth
                                             value={input}
                                             onChange={handleInputChange}
+                                            onKeyDown={(event) => {
+                                                if (event.shiftKey && event.key === "Enter") {
+                                                    event.preventDefault();
+                                                    handleClick07();
+                                                }
+                                                const input = event.target as HTMLInputElement;
+                                                if (event.ctrlKey && event.key === 'c' && !(input.selectionStart !== input.selectionEnd)) {
+                                                    navigator.clipboard.writeText(output).then(() => {
+                                                        copyMe();
+                                                        console.log("Copied!");
+
+
+                                                    }).catch(() => {
+                                                        console.log("I couldn't copy it!");
+                                                    });
+                                                }
+                                            }}
                                         />
 
                                         <Button variant={"contained"} onClick={handleClick07}
@@ -152,15 +169,13 @@ function App() {
 
                                             <Tooltip
                                                 placement={"bottom"}
-                                                title={`Download as ${amendedFileName}.${stringPipe.getExtension()}`}><Button
+                                                title={`Download as ${amendedFileName}.${stringPipe.getExtension()}`}><span><Button
                                                 disabled={!altered}
                                                 variant={"outlined"} onClick={() => {
                                                 downloadFile(output);
                                             }}>
                                                 Download
-                                            </Button></Tooltip>
-
-
+                                            </Button></span></Tooltip>
 
 
                                             <Tooltip
@@ -180,9 +195,15 @@ function App() {
 
 
                                 <Grid item xs={6}>
-                                    <Typography className={"read-the-docs"}>                Text Amender is a tool that processes raw text programmatically, all online. Add something from the options to the pipe by clicking on it. When "process me" is clicked, the text is processed on every item in the pipe from top to bottom.
+                                    <Typography className={"read-the-docs"}> Text Amender is a tool that processes raw
+                                        text programmatically, all online. Add something from the options to the pipe by
+                                        clicking on it. When "process me" is clicked, the text is processed on every
+                                        item in the pipe from top to bottom.
 
-                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a>
+                                        When focused on the text box, press SHIFT+ENTER to process the text,
+                                        and press CTRL+C when selecting no text to copy.
+
+                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a> <a href={"https://it-tools.tech/"}>IT-Tools</a>
                                     </Typography>
                                 </Grid>
 

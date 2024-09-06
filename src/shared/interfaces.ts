@@ -2,12 +2,11 @@ export enum AmendmentCategories {
     // Anything that has to deal with document formatted for pandoc
     Strings = "Strings",
     CSV = "CSV",
-
     // Anything that deals with equations copied off Microsoft Word
     WordEquations = "WordEquations",
     // Anything that deals with reading documents that are not plain text
-    Paper = "Paper",
-    Boilerplate = "Boilerplate",
+    Lists = "Lists",
+    Code = "Code",
     Paths = "Paths",
     Pandoc = "Pandoc",
     Markdown = "Markdown",
