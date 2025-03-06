@@ -127,7 +127,7 @@ const textToList: AmendmentModule = {
     category: AmendmentCategories.Lists,
     inputType: "Text",
     operation: (text) => {
-        return JSON.stringify(text.trim().split("\n"))
+        return JSON.stringify(text.split("\n"))
     }
 }
 
@@ -146,7 +146,7 @@ const numbersToList: AmendmentModule = {
             return a2;
         }
 
-        return JSON.stringify(text.trim().split("\n").map(t => safeParseFloat(t)))
+        return JSON.stringify(text.split("\n").map(t => safeParseFloat(t)))
     }
 }
 
