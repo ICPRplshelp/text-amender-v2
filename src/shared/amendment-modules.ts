@@ -754,6 +754,36 @@ const removeB2BNewLines: AmendmentModule = {
     }
 }
 
+const removeLoneNewlines: AmendmentModule = {
+    name: "Remove lone newlines",
+    repr: "lone-newlines",
+    description: "Removes any single newlines. Will not remove newlines where the next line starts with a -, ignoring whitespace. Will not remove newlines wrapped inside markdown code blocks.",
+    category: AmendmentCategories.Strings,
+    operation: (markdown) => {
+        const splitList = markdown.split('\n');
+        const joinedList: string[] = [];
+        let in_code = false;
+        for(const item of splitList) {
+            if(item.trimStart().startsWith('```')) {
+                joinedList.push(item);
+                in_code = !in_code;
+                continue;
+            }
+
+            if(joinedList.length === 0 || in_code) {
+                joinedList.push(item);
+            } else {
+                if(item.trim().startsWith('-') || item.trim().length === 0) {
+                    joinedList.push(item);
+                } else {
+                    joinedList[joinedList.length - 1] = joinedList[joinedList.length - 1].trimEnd() + (joinedList[joinedList.length - 1].length > 0 ? ' ' : '') + item.trimStart();
+                }
+            }
+        }
+        return joinedList.join('\n');
+    }
+}
+
 const lenOfString: AmendmentModule = {
     name: "String length",
     repr: "string-length",
@@ -1031,7 +1061,7 @@ const unHTML: AmendmentModule = {
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
     literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
-    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,
+    transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,removeLoneNewlines,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     align, plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper,
