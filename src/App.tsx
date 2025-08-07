@@ -61,6 +61,7 @@ function App() {
         element.download = `${amendedFileName}.${stringPipe.getExtension()}`;
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
+
     }
 
 
