@@ -3,27 +3,53 @@ import * as yaml from 'js-yaml';
 
 
 const align: AmendmentModule = {
-    name: "Align",
+    name: "Align and Fix MS Word LaTeX",
     repr: "align",
     inputType: "MS Word Stacked Math",
     description: "Converts MS Word stacked equations into LaTeX-compatible code. Open a new equation box, set equation mode to LaTeX, select the series of stacked equations you want to copy, hit copy, and paste it in the text box. Then, click on process me. If you're using the Align option, equations should be stacked with SHIFT+ENTER. To minimize errors, I strongly recommend starting each new line with an operator. MS Word's copy-paste results are not consistent so expect errors.",
     category: AmendmentCategories.WordEquations,
     operation: (text) => {
-        const fixUpBadNotation = (s: string) => {
-            const tli: string[][] = [
-                ['\\{', '\\lbrace'],
-                ['\\}', '\\rbrace'],
-                ['\\emsp', '\\quad']
-            ];
-            for (const tl of tli) {
-                s = s.replaceAll(tl[0], tl[1]);
+        function looksLikeLatex(input: string): boolean {
+            if (/\\(frac|sqrt|sum|int|mathbf|mathrm|begin|end|alpha|beta|gamma|hvec|nabla|del)/.test(input)) {
+                return true;
             }
-            return s;
+            if (/[a-zA-Z0-9]\s*[\^_]\s*[a-zA-Z0-9{]/.test(input)) {
+                return true;
+            }
+            if (/\\[a-zA-Z]+\{.*\}/.test(input)) {
+                return true;
+            }
+            console.log(text, "Does not look like LaTeX");
+            return false;
         }
-        const t2 = text.replaceAll('\n', '\\bigm').split("\\bigm");
-        const t3 = t2.map(s => `& ${fixUpBadNotation(s)} \\\\`);
-        const t4 = t3.join('\n');
-        return "$$\\begin{aligned}\n" + t4 + "\n\\end{aligned}$$\n";
+        const fixOneLineOfBadNotation = (textInternal: string) => {
+            const fixUpBadNotation = (s: string) => {
+                const tli: string[][] = [
+                    ['\\{', '\\lbrace'],
+                    ['\\}', '\\rbrace'],
+                    ['\\emsp', '\\quad'],
+                    ["\\hvec", "\\mathbf"]
+                ];
+                for (const tl of tli) {
+                    s = s.replaceAll(tl[0], tl[1]);
+                }
+                return s;
+            }
+            // replaceAll('\n', '\\bigm')
+            const t2 = textInternal.split("\\bigm");
+            const t21 = t2.map(fixUpBadNotation);
+            if (t21.length >= 2) {
+                const t3 = t21.map(s => `& ${s} \\\\`);
+                const t4 = t3.join('\n');
+                return "$$\\begin{aligned}\n" + t4 + "\n\\end{aligned}$$\n";
+            } else if (t21.length === 1) {
+                return "$$" + t21[0] + "$$";
+            } else {
+                return "";
+            }
+        }
+        const round_one = text.split("\n").map(v => looksLikeLatex(v) ? fixOneLineOfBadNotation(v) : v).join("\n\n");
+        return round_one;
     }
 }
 
@@ -251,6 +277,19 @@ const toMathAM: AmendmentModule = {
 function transpose<T>(matrix: T[][]): T[][] {
     return matrix[0].map((_, i) => matrix.map(row => row[i]));
 }
+
+/*
+const wordLaTeXRepair: AmendmentModule = {
+    name: "Word LaTeX repair",
+    repr: "word-latex-repair",
+    description: "When copying an equation in MS Word with LaTeX form, fix all issues such that the result is compatible with KaTeX",
+    category: AmendmentCategories.WordEquations,
+    inputType: "Equation",
+    operation: (text) => {
+        return text;
+    }
+}
+*/
 
 const transposeMatrix: AmendmentModule = {
     name: "Transpose Matrix",
@@ -1012,7 +1051,7 @@ const escapeHTML: AmendmentModule = {
                 '\n': '<br>',
             };
 
-            return input.replace(/[&<>"'`=\/ \n]|[^\x20-\x7E]/g, (char) => {
+            return input.replace(/[&<>"'`=/ \n]|[^\x20-\x7E]/g, (char) => {
                 if (escapeMap[char]) {
                     return escapeMap[char];
                 }
@@ -1060,10 +1099,10 @@ const unHTML: AmendmentModule = {
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
-    literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations,
+    literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations, align,
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,removeLoneNewlines,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
-    align, plusMinus, fakeListToList, json2DListToCSV,
+    plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper,
     markdownHeadingLeft,
     markdownHeadingRight, tokenize,
