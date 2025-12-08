@@ -19,7 +19,7 @@ const align: AmendmentModule = {
             if (/\\[a-zA-Z]+\{.*\}/.test(input)) {
                 return true;
             }
-            console.log(text, "Does not look like LaTeX");
+            // console.log(text, "Does not look like LaTeX");
             return false;
         }
         const fixOneLineOfBadNotation = (textInternal: string) => {
@@ -111,6 +111,28 @@ const pdfNewlineRemover: AmendmentModule = {
         return text;
     }
 }
+
+const pdfNumberedListToText: AmendmentModule = {
+    name: "PDF num. list to text",
+    repr: "num-list-to-text",
+    inputType: "Text copied from PDF",
+    category: AmendmentCategories.Strings,
+    description: "Removes all newlines if the line doesn't start with this regex: $\\d+\\.",
+    operation: (text) => {
+        const split_text = text.split("\n").filter(t => t.length >= 1);
+        const final_text_join: string[] = [];
+        // console.log(split_text);
+        for(const spt of split_text) {
+            if(spt.match(/^\d+\./)) {
+                final_text_join.push("\n" + spt);
+            } else {
+                final_text_join.push(" "+ spt);
+            }
+        }
+        return final_text_join.join("").trim();
+    }
+}
+
 
 const softWrapper: AmendmentModule = {
     name: "Soft Wrapper",
@@ -305,7 +327,7 @@ const transposeMatrix: AmendmentModule = {
             return `Invalid input: ${firstBracket}, ${lastBracket} | ${text}`;
         }
         const matrixText = text.slice(firstBracket + 1, lastBracket);
-        console.log(matrixText);
+        // console.log(matrixText);
         const mtmt = matrixText.split("@").map(line => line.split("&"));
         const mtmtTransposed = transpose(mtmt);
         const tpAsString = mtmtTransposed.map(nl => nl.join("&")).join("@");
@@ -1099,7 +1121,7 @@ const unHTML: AmendmentModule = {
 
 export const amendmentModules: AmendmentModule[] = [
     textToList, numbersToList, toUnixPath, toWindowsPath, toGitBash, toWSLPath, thisPCFoldersAccessToFullPath, stripSurroundingQuotes, toUpper,
-    literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations, align,
+    literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations, align, pdfNumberedListToText,
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,removeLoneNewlines,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     plusMinus, fakeListToList, json2DListToCSV,

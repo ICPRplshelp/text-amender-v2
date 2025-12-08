@@ -85,7 +85,7 @@ function App() {
                                       className={"scrollable-div"}
                                 >
                                     <ModuleSelector modules={amendmentModules} onSelect={(_a) => {
-                                        console.log("AMONG US");
+
                                         stringPipe.modules.push(_a);
                                         forceUpdate();
                                     }}>
@@ -204,7 +204,8 @@ function App() {
                                         When focused on the text box, press SHIFT+ENTER to process the text,
                                         and press CTRL+C when selecting no text to copy.
 
-                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a> <a href={"https://it-tools.tech/"}>IT-Tools</a>
+                                        See: <a href={"https://typegen.vestera.as/"}>Typegen</a> <a
+                                            href={"https://it-tools.tech/"}>IT-Tools</a>
                                     </Typography>
                                 </Grid>
 
