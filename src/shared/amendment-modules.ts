@@ -98,6 +98,75 @@ const fakeListToList: AmendmentModule = {
     }
 }
 
+const paragraphToList: AmendmentModule = {
+    name: "Paragraphs to list",
+    repr: "para-to-list",
+    description: "Adds a (- ) in front of each newline",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return "- " + text.replaceAll("\n", "\n- ");
+    }
+};
+const paragraphToNumeric: AmendmentModule = {
+    name: "Paragraphs to Numeric",
+    repr: "para-to-num",
+    description: "Adds a (- ) in front of each newline",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.split('\n')
+            .map((line, i) => `${i + 1}. ${line}`)
+            .join('\n');
+    }
+};
+// paragraphToList, paragraphToNumeric, redundantNewlineRemover, renumberList, markdownQuote, redundantNewlineRemover, deListDeNumber
+const redundantNewlineRemover: AmendmentModule = {
+    name: "Redundant Newline Remover",
+    repr: "rdd-nl-rm",
+    description: "Removes all empty lines",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.split("\n").filter(v => v.length >= 1).join("\n");
+    }
+}
+
+const deListDeNumber: AmendmentModule = {
+    name: "Delist / Denumber",
+    repr: "dl-dnum",
+    description: "Removes \"- \" or \"\\d+\\.\\s*\" if they begin a line",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text.split("\n").map(line => line.replace(/^d+\.\s*/, "")).map(line => line.replace(/^-\s*/, "")).join("\n");
+    }
+}
+
+const renumberList: AmendmentModule = {
+    name: "Re-number list",
+    repr: "renum-list",
+    description: "Any numbered list (with the numbers in front: \\n\\d+\\.\\s), ensure the numbers are in the correct order, in case the ordering is wrong",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        return text
+            .split('\n')
+            .map(line => line.replace(/^\d+\.\s*/, ''))
+            .map((line, i) => `${i + 1}. ${line}`)
+            .join('\n');
+    }
+}
+
+const markdownQuote: AmendmentModule = {
+    name: "Markdown Quote",
+    repr: "markdown-quote",
+    description: "Adds \"> \" after every newline and the start",
+    category: AmendmentCategories.Markdown,
+    operation: (text) => {
+        return "> " + text.replaceAll("\n", "\n> ");
+    }
+}
+
 const pdfNewlineRemover: AmendmentModule = {
     name: "PDF Newline Remover",
     repr: "pdf-newline-remover",
@@ -1124,7 +1193,7 @@ export const amendmentModules: AmendmentModule[] = [
     literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations, align, pdfNumberedListToText,
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,removeLoneNewlines,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
-    plusMinus, fakeListToList, json2DListToCSV,
+    plusMinus, fakeListToList, json2DListToCSV, paragraphToList, paragraphToNumeric, redundantNewlineRemover, renumberList, markdownQuote, redundantNewlineRemover, deListDeNumber,
     pdfNewlineRemover, softWrapper,
     markdownHeadingLeft,
     markdownHeadingRight, tokenize,
