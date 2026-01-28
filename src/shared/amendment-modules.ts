@@ -138,7 +138,9 @@ const deListDeNumber: AmendmentModule = {
     description: "Removes \"- \" or \"\\d+\\.\\s*\" if they begin a line",
     category: AmendmentCategories.Strings,
     operation: (text) => {
-        return text.split("\n").map(line => line.replace(/^d+\.\s*/, "")).map(line => line.replace(/^-\s*/, "")).join("\n");
+        return text.split("\n")
+            .map(line => line.replace(/^(?:-\s*|\d+\.\s*)/, ""))
+            .join("\n");  
     }
 }
 
