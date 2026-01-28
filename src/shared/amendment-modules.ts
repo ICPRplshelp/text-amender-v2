@@ -1193,7 +1193,7 @@ export const amendmentModules: AmendmentModule[] = [
     literalToString, stringToLiteral, removeDuplicatesFromList, stringCounter, toMathAM, wordMatrixToCode, fixUnicodeEquations, align, pdfNumberedListToText,
     transposeMatrix, tsvToCsv, csvToTsv, tsvToJsonKeysBlankNull, csvToJsonKeysBlankNull, csvToJsonKeys, spaceToTabs, newTypeOldType, oldTypeNewType, stripLeadingSpaces, extractNumberFromCsv,removeLoneNewlines,
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
-    plusMinus, fakeListToList, json2DListToCSV, paragraphToList, paragraphToNumeric, redundantNewlineRemover, renumberList, markdownQuote, redundantNewlineRemover, deListDeNumber,
+    plusMinus, fakeListToList, json2DListToCSV, paragraphToList, paragraphToNumeric, renumberList, markdownQuote, redundantNewlineRemover, deListDeNumber,
     pdfNewlineRemover, softWrapper,
     markdownHeadingLeft,
     markdownHeadingRight, tokenize,
