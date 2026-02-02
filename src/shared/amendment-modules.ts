@@ -158,6 +158,33 @@ const renumberList: AmendmentModule = {
             .join('\n');
     }
 }
+// 光
+const noLaTeXComments: AmendmentModule = {
+    name: "No LaTeX comments",
+    repr: "n-lt-c",
+    description: "Removes all LaTeX comments (% and everything after, not including \\%). Note: may not work with verbatim.",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: (text) => {
+        const sentinel = "accoあいうえおrdin光gto光jikosdrgkjKFHLUKRJSEFJIUOEFHHOLGFJU:SWJE";
+        return text
+            .split('\n')
+            .map(line => line.replaceAll("\\%", sentinel).replaceAll(/%.*/, ''))
+            .join('\n');
+    }
+}
+// noLaTeXComments, noNewlines
+const noNewlines: AmendmentModule = {
+    name: "No Newlines",
+    repr: "n-nl-slash-n",
+    description: "Replaces all newlines with a space.",
+    inputType: "Text",
+    category: AmendmentCategories.Strings,
+    operation: text => {
+        return text.replaceAll("\n", " ");
+    }
+}
+
 
 const markdownQuote: AmendmentModule = {
     name: "Markdown Quote",
@@ -1197,8 +1224,8 @@ export const amendmentModules: AmendmentModule[] = [
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     plusMinus, fakeListToList, json2DListToCSV, paragraphToList, paragraphToNumeric, renumberList, markdownQuote, redundantNewlineRemover, deListDeNumber,
     pdfNewlineRemover, softWrapper,
-    markdownHeadingLeft,
-    markdownHeadingRight, tokenize,
+    markdownHeadingLeft, 
+    markdownHeadingRight, tokenize, noLaTeXComments, noNewlines,
     markdownShiftImageLinks, setMinus, fileSystemFormat,
     removeB2BNewLines, lenOfString, newlinesOfString, yamlToJson, replaceCommasWithNewlines, replaceNewlinesWithCommas, encodeURI, decodeURI, escapeHTML, unHTML,
     ...extAmendmentModules
