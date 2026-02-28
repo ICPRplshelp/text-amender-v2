@@ -1410,7 +1410,7 @@ export const amendmentModules: AmendmentModule[] = [
   pandocMarkdownToHTML,
   strip,
   selectFromCSV,
-  toMarkdownTable, pdfNumberedListToText,
+  toMarkdownTable, pdfNumberedListToText, fixPDFNumberedList,
   toLaTeXTable,
   csvToJSONRows,
   plusMinus,
@@ -1442,5 +1442,5 @@ export const amendmentModules: AmendmentModule[] = [
   encodeURI,
   decodeURI,
   escapeHTML,
-  unHTML,
+  unHTML, ...extAmendmentModules
 ];
