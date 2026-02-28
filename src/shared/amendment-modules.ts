@@ -53,6 +53,22 @@ const align: AmendmentModule = {
     }
 }
 
+const fixPDFNumberedList: AmendmentModule = {
+    operation: (text) => {
+        function reformatNumberedList(input: string): string {
+            return input
+                .replace(/[\n\r]+/g, '')
+                .replace(/(?=\d+\.)/g, '\n').trim();
+        }
+        return reformatNumberedList(text);
+    },
+    name: 'Fix PDF numbered list',
+    repr: 'fix-pdf-num-list',
+    inputType: 'Text copied from a PDF',
+    category: AmendmentCategories.Strings,
+    description: "Removes all newlines, and then adds a newline in front of all \\d+\\."
+}
+
 const fixUnicodeEquations: AmendmentModule = {
     name: "Unicode Copy",
     repr: "unicode-copy",
@@ -1126,7 +1142,7 @@ export const amendmentModules: AmendmentModule[] = [
     pandocMarkdownToHTML, strip, selectFromCSV, toMarkdownTable, toLaTeXTable, csvToJSONRows,
     plusMinus, fakeListToList, json2DListToCSV,
     pdfNewlineRemover, softWrapper,
-    markdownHeadingLeft,
+    markdownHeadingLeft, fixPDFNumberedList,
     markdownHeadingRight, tokenize,
     markdownShiftImageLinks, setMinus, fileSystemFormat,
     removeB2BNewLines, lenOfString, newlinesOfString, yamlToJson, replaceCommasWithNewlines, replaceNewlinesWithCommas, encodeURI, decodeURI, escapeHTML, unHTML,
