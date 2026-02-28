@@ -1,6 +1,17 @@
-import {ChangeEvent, Fragment, SyntheticEvent, useReducer, useState} from 'react'
+import {ChangeEvent, Fragment, SyntheticEvent, useMemo, useReducer, useState} from 'react'
 import './App.css'
-import {Box, Button, FormControl, Grid, Snackbar, TextField, Tooltip, Typography} from "@mui/material";
+import {
+    Box,
+    Button, createTheme,
+    CssBaseline,
+    FormControl,
+    Grid,
+    Snackbar,
+    TextField,
+    ThemeProvider,
+    Tooltip,
+    Typography, useMediaQuery
+} from "@mui/material";
 import {amendmentModules} from "./shared/amendment-modules.ts";
 import CodeBlock from "./components/CodeBlock";
 import {AmendmentModule} from "./shared/interfaces.ts";
@@ -64,9 +75,20 @@ function App() {
 
     }
 
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const theme = useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: prefersDarkMode ? 'dark' : 'light',
+                },
+            }),
+        [prefersDarkMode],
+    );
 
     return (
         <>
+            <ThemeProvider theme={theme}><CssBaseline />
             <div className={"parent"}>
                 <div className={"child"}>
                     <div>
@@ -228,6 +250,7 @@ function App() {
                 message="Copied"
                 action={action}
             />
+            </ThemeProvider>
         </>
     )
 }
